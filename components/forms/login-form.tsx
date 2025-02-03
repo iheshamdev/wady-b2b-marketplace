@@ -129,7 +129,7 @@ export const LoginForm = () => {
       </Button>
       {phoneNumber && (
         <div className="mt-5 flex items-center justify-center gap-2">
-          <P>Didn't get the code?</P>
+          <P>Didn&apos;t get the code?</P>
           <Button
             type="button"
             variant="link"
