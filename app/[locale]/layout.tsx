@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AbstractIntlMessages } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { Toaster } from "sonner";
 
 import ClientLayout from "./client-layout";
 
@@ -33,6 +34,7 @@ export default async function Layout({
   return (
     <ClientLayout locale={locale} messages={messages}>
       {children}
+      <Toaster />
     </ClientLayout>
   );
 }

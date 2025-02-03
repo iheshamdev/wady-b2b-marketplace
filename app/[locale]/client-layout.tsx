@@ -1,12 +1,12 @@
 "use client";
 
-import { Inter } from "next/font/google";
+import { Cairo } from "next/font/google";
 import { DirectionProvider } from "@radix-ui/react-direction";
 import { AbstractIntlMessages, NextIntlClientProvider } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
-const inter = Inter({
+const cairo = Cairo({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
@@ -25,7 +25,7 @@ export default function ClientLayout({
     <html
       lang={locale}
       dir={locale === "ar" ? "rtl" : "ltr"}
-      className={cn(inter.className)}
+      className={cn(cairo.className)}
     >
       <body className="flex min-h-screen flex-col bg-background antialiased">
         <NextIntlClientProvider

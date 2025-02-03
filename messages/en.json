@@ -3,5 +3,21 @@
     "login": "Login",
     "logout": "Logout",
     "language": "Language"
+  },
+  "login": {
+    "h1": "Connecting <br/> Retailers and suppliers <br/> Seamlessly.",
+    "heading1": "Connecting",
+    "heading2": "Retailers and suppliers",
+    "heading3": "Seamlessly",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign In",
+    "forgotPassword": "Forgot Password?",
+    "newUser": "New user?",
+    "createAccount": "Create an account",
+    "error": {
+      "invalidCredentials": "Invalid email or password",
+      "required": "This field is required"
+    }
   }
 }
