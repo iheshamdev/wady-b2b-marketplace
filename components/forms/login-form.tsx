@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { otpSchema, phoneSchema } from "@/schemas/auth";
-import { useAuthStore } from "@/store/authStore";
+import useUserStore from "@/store/user-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import OtpInput from "react-otp-input";
@@ -14,8 +14,9 @@ import { Button, Input, Label } from "@/components/ui";
 import { H2, P } from "../shared/typography";
 
 export const LoginForm = () => {
-  const { phoneNumber, loading, error, setPhoneNumber, setLoading, setError } =
-    useAuthStore();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const { loading, error, setLoading, setError, setToken, setUser } =
+    useUserStore();
   const {
     register,
     control,
@@ -35,18 +36,16 @@ export const LoginForm = () => {
       if (!phoneNumber) {
         // Step 1: Generate OTP
         const phone = "+974" + data.phoneNumber;
-        console.log("Sending OTP to:", phone);
         await generateOTP(phone); // Call your API to generate OTP
         setPhoneNumber(phone); // Save the phone number in the store
       } else {
         // Step 2: Verify OTP
-        console.log("Verifying OTP:", otp);
-        const response = await verifyOTP(phoneNumber, otp); // Call your API to verify OTP
-        console.log("OTP verification response:", response);
-        if (response.success) {
-          // Save the token and redirect
+        const response = await verifyOTP(phoneNumber, otp);
+        console.log("Sending OTP to:", response);
+        if (response?.data?.token) {
           window.location.href = "/";
-          // setToken(response.token);
+          setToken(response.data.token);
+          setUser(response.data.user);
         }
       }
     } catch (err: any) {
@@ -128,12 +127,12 @@ export const LoginForm = () => {
         {loading ? "Loading..." : phoneNumber ? "Verify OTP" : "Send OTP"}
       </Button>
       {phoneNumber && (
-        <div className="mt-5 flex items-center justify-center gap-2">
+        <div className="mt-5 flex items-center justify-center">
           <P>Didn&apos;t get the code?</P>
           <Button
             type="button"
             variant="link"
-            onClick={() => console.log("Will resend the code")}
+            onClick={async () => await generateOTP(phoneNumber)}
           >
             Resend OTP
           </Button>

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Cairo } from "next/font/google";
+import { useRouter } from "next/navigation";
 import { DirectionProvider } from "@radix-ui/react-direction";
 import { AbstractIntlMessages, NextIntlClientProvider } from "next-intl";
 
@@ -34,7 +36,7 @@ export default function ClientLayout({
           timeZone="Asia/Qatar"
         >
           <DirectionProvider dir={locale === "ar" ? "rtl" : "ltr"}>
-            <main className="flex-1">{children}</main>
+            {children}
           </DirectionProvider>
         </NextIntlClientProvider>
       </body>
