@@ -19,7 +19,7 @@ export default function HomePage() {
 
   return (
     <>
-      <h1>Good Morning</h1>
+      <h1>Good Morning </h1>
       <Button
         variant="white"
         onClick={toggleLocale}

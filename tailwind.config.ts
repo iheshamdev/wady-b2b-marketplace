@@ -14,9 +14,40 @@ export const breakpoints = {
   desktop: 1280,
 };
 export const colors = {
+  ...defaultColors,
   background: "hsl(var(--background))",
   foreground: "hsl(var(--foreground))",
-  gray: defaultColors.gray,
+  primary: {
+    DEFAULT: "hsl(var(--primary-500))",
+    foreground: "hsl(var(--primary-foreground))",
+    50: "hsl(var(--primary-50))",
+    100: "hsl(var(--primary-100))",
+    200: "hsl(var(--primary-200))",
+    300: "hsl(var(--primary-300))",
+    400: "hsl(var(--primary-400))",
+    500: "hsl(var(--primary-500))",
+    600: "hsl(var(--primary-600))",
+    700: "hsl(var(--primary-700))",
+    800: "hsl(var(--primary-800))",
+    900: "hsl(var(--primary-900))",
+    950: "hsl(var(--primary-950))",
+  },
+  secondary: {
+    DEFAULT: "hsl(var(--secondary-500))",
+    foreground: "hsl(var(--secondary-foreground))",
+  },
+  success: {
+    DEFAULT: "hsl(var(--success))",
+    foreground: "hsl(var(--success-foreground))",
+  },
+  warning: {
+    DEFAULT: "hsl(var(--warning))",
+    foreground: "hsl(var(--warning-foreground))",
+  },
+  error: {
+    DEFAULT: "hsl(var(--error))",
+    foreground: "hsl(var(--error-foreground))",
+  },
   card: {
     DEFAULT: "hsl(var(--card))",
     foreground: "hsl(var(--card-foreground))",
@@ -24,10 +55,6 @@ export const colors = {
   popover: {
     DEFAULT: "hsl(var(--popover))",
     foreground: "hsl(var(--popover-foreground))",
-  },
-  primary: {
-    DEFAULT: "hsl(var(--primary))",
-    foreground: "hsl(var(--primary-foreground))",
   },
   muted: {
     DEFAULT: "hsl(var(--muted))",
@@ -41,20 +68,9 @@ export const colors = {
     DEFAULT: "hsl(var(--destructive))",
     foreground: "hsl(var(--destructive-foreground))",
   },
-  warning: {
-    DEFAULT: "hsl(var(--warning))",
-    foreground: "hsl(var(--warning-foreground))",
-  },
   border: "hsl(var(--border))",
   input: "hsl(var(--input))",
   ring: "hsl(var(--ring))",
-  chart: {
-    "1": "hsl(var(--chart-1))",
-    "2": "hsl(var(--chart-2))",
-    "3": "hsl(var(--chart-3))",
-    "4": "hsl(var(--chart-4))",
-    "5": "hsl(var(--chart-5))",
-  },
 };
 
 const config: Config = {
