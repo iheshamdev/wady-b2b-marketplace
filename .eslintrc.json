@@ -13,6 +13,7 @@
     "tailwindcss/no-custom-classname": "off",
     "tailwindcss/classnames-order": "error",
     "@typescript-eslint/explicit-module-boundary-types": "off",
+    "react/no-unescaped-entities": "off",
     "@typescript-eslint/no-explicit-any": "warn"
   },
   "settings": {
