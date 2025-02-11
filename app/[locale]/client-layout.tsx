@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { Cairo } from "next/font/google";
 import { useRouter } from "next/navigation";
+import { usePathname } from "@/i18n/routing";
 import { DirectionProvider } from "@radix-ui/react-direction";
 import { AbstractIntlMessages, NextIntlClientProvider } from "next-intl";
 
 import { cn } from "@/lib/utils";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 
 const cairo = Cairo({
   subsets: ["latin"],
@@ -23,6 +26,9 @@ export default function ClientLayout({
   locale: string;
   messages: AbstractIntlMessages;
 }) {
+  const excludedRoutes = ["/login"];
+  const pathname = usePathname();
+  const isExcluded = excludedRoutes.includes(pathname);
   return (
     <html
       lang={locale}
@@ -36,7 +42,11 @@ export default function ClientLayout({
           timeZone="Asia/Qatar"
         >
           <DirectionProvider dir={locale === "ar" ? "rtl" : "ltr"}>
+            {!isExcluded && <SiteHeader />}
+            {/* <main className={cn("flex-1", pathname !== "/" ? "" : "")}>
+            </main> */}
             {children}
+            {!isExcluded && <SiteFooter />}
           </DirectionProvider>
         </NextIntlClientProvider>
       </body>
