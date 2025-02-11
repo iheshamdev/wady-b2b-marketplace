@@ -43,7 +43,7 @@ const categories: Category[] = [
   {
     id: 5,
     name: "Health & Wellness",
-    image: "/images/categories/health-wellness.png",
+    image: "/images/categories/health.png",
     bgColor: "bg-[#EBFFF3]",
     href: "/categories/health-wellness",
   },
