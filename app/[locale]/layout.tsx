@@ -3,6 +3,9 @@ import { AbstractIntlMessages } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Toaster } from "sonner";
 
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+
 import ClientLayout from "./client-layout";
 
 const locales = ["en", "ar"] as const;
@@ -33,7 +36,9 @@ export default async function Layout({
 
   return (
     <ClientLayout locale={locale} messages={messages}>
+      <SiteHeader />
       {children}
+      <SiteFooter />
       <Toaster />
     </ClientLayout>
   );

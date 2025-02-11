@@ -91,8 +91,8 @@ const config: Config = {
       center: true,
       padding: "1rem",
       screens: {
-        sm: "100%",
-        xl: "1280px",
+        // sm: "100%",
+        // xl: "1280px",
         "2xl": "1440px",
       },
     },

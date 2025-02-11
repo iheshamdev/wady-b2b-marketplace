@@ -1,80 +1,57 @@
-"use client";
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { HTMLMotionProps, motion } from "framer-motion";
-
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex gap-2 items-center justify-center whitespace-nowrap rounded text-sm font-medium shadow-sm transition-colors focus:ring-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-        accent: "bg-accent text-accent-foreground hover:bg-accent/90",
-        black: "bg-black text-white",
-        white: "bg-white text-black",
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
         destructive:
-          "bg-destructive/20 text-destructive hover:bg-destructive/30",
-        warning: "bg-warning/20 text-warning hover:bg-warning/30",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
-          "border border-input bg-transparent text-black hover:text-background-foreground",
-        ghost: "backdrop-blur-md bg-black/5 hover:bg-black/10",
-        link: "text-black text-primary underline-offset-4 hover:underline shadow-none",
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
+        default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-md px-8",
+        lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
       },
     },
     defaultVariants: {
+      variant: "default",
       size: "default",
-      variant: "primary",
     },
-  },
-);
+  }
+)
 
-type ButtonVariantProps = VariantProps<typeof buttonVariants>;
-
-export interface ButtonProps extends ButtonVariantProps {
-  hoverAnimation?: boolean;
-  tapAnimation?: boolean;
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
 }
 
-type MotionButtonProps = Omit<HTMLMotionProps<"button">, keyof ButtonProps>;
-
-const Button = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps & MotionButtonProps
->(
-  (
-    {
-      className,
-      variant,
-      size,
-      hoverAnimation = true,
-      tapAnimation = true,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
     return (
-      <motion.button
-        className={cn(buttonVariants({ size, variant, className }))}
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        whileTap={tapAnimation ? { scale: 0.95 } : undefined}
-        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         {...props}
-      >
-        {children}
-      </motion.button>
-    );
-  },
-);
-Button.displayName = "Button";
+      />
+    )
+  }
+)
+Button.displayName = "Button"
 
-export { Button, buttonVariants };
+export { Button, buttonVariants }

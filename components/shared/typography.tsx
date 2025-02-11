@@ -49,7 +49,7 @@ const H4 = React.forwardRef<HTMLHeadingElement, TypographyProps>(
   ({ className, ...props }, ref) => (
     <h4
       ref={ref}
-      className={cn("scroll-m-20 text-2xl font-semibold", className)}
+      className={cn("scroll-m-20 text-xl font-semibold", className)}
       {...props}
     />
   ),
