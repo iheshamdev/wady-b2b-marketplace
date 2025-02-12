@@ -5,6 +5,16 @@ import { Progress } from "@/components/ui/progress";
 import { CategoryList } from "@/components/shared/categories";
 import { HeroCarousel } from "@/components/shared/hero-carousel";
 import { ProductCard } from "@/components/shared/product-card";
+import {
+  H1,
+  H2,
+  H3,
+  H4,
+  Large,
+  Lead,
+  P,
+  Small,
+} from "@/components/shared/typography";
 
 const products = [
   {
@@ -80,41 +90,28 @@ function HomePage() {
 
   return (
     <>
-      {/* <motion.div
-        style={{
-          width: 100,
-          height: 100,
-          backgroundColor: "#ff0088",
-          borderRadius: 5,
-        }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1 }}
-      /> */}
       <div className="container py-6">
         <div className="flex items-center justify-between">
-          {/* Welcome Message */}
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <H2>
               Welcome
               <span role="img" aria-label="waving hand">
                 👋
               </span>
-            </h1>
-            <p className="text-neutral-600">
+            </H2>
+            <Lead className="text-neutral-600">
               Start exploring a seamless shopping experience
-            </p>
+            </Lead>
           </div>
 
           {/* Profile Completion */}
           <div className="w-[400px] max-w-full rounded bg-neutral-50 px-6 py-3">
             <div className="mb-1 flex items-center justify-between">
-              <h2 className="font-semibold">Complete your profile</h2>
+              <Large>Complete your profile</Large>
             </div>
-            <p className="text-sm text-neutral-600">
-              Fill in your profile to unlock the full experience.
-            </p>
+            <Small>Fill in your profile to unlock the full experience.</Small>
             <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm">20%</span>
+              <Small>20%</Small>
               <Progress value={20} className="h-[5px] w-full" />
             </div>
           </div>
@@ -122,9 +119,8 @@ function HomePage() {
         <div className="mb-10 mt-5">
           <HeroCarousel />
         </div>
-        {/* <div className="banner mb-10 mt-5 h-[285px] rounded bg-neutral-200"></div> */}
         <CategoryList />
-        <h2 className="mb-4 mt-10 text-xl font-semibold">Products</h2>
+        <H3 className="mb-4 mt-10">Products</H3>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {products.map((product, index) => (
             <ProductCard key={index} {...product} />

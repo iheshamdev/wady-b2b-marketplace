@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Facebook, Instagram, MessageCircle, Twitter } from "lucide-react";
 
+import { P, Small } from "../shared/typography";
 import { Icons } from "../ui/icons";
 
 const footerLinks = {
@@ -46,9 +47,7 @@ export function SiteFooter() {
           <div className="grid gap-8 sm:grid-cols-3 lg:col-span-6">
             {/* About Us */}
             <div className="space-y-2">
-              <h3 className="text-sm font-medium">
-                {footerLinks.aboutUs.title}
-              </h3>
+              <Small>{footerLinks.aboutUs.title}</Small>
               <ul className="space-y-1">
                 {footerLinks.aboutUs.links.map((link) => (
                   <li key={link.href}>
@@ -65,9 +64,7 @@ export function SiteFooter() {
 
             {/* Help & Support */}
             <div className="space-y-2">
-              <h3 className="text-sm font-medium">
-                {footerLinks.helpSupport.title}
-              </h3>
+              <Small>{footerLinks.helpSupport.title}</Small>
               <ul className="space-y-1">
                 {footerLinks.helpSupport.links.map((link) => (
                   <li key={link.href}>
@@ -84,9 +81,7 @@ export function SiteFooter() {
 
             {/* Terms & Policies */}
             <div className="space-y-2">
-              <h3 className="text-sm font-medium">
-                {footerLinks.termsPolicy.title}
-              </h3>
+              <Small>{footerLinks.termsPolicy.title}</Small>
               <ul className="space-y-1">
                 {footerLinks.termsPolicy.links.map((link) => (
                   <li key={link.href}>
@@ -105,9 +100,9 @@ export function SiteFooter() {
           {/* Help Section */}
           <div className="lg:col-span-3">
             <div className="flex items-center justify-end gap-2 text-sm">
-              <span className="cursor-pointer text-primary">
+              <P className="cursor-pointer text-primary">
                 Have a question? We are here to help
-              </span>
+              </P>
               <div className="flex size-11 items-center justify-center rounded-full bg-primary">
                 <Icons.MessageCircleMore className="fill-white text-transparent" />
               </div>

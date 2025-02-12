@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 import { Icons } from "../ui/icons";
-import { H4 } from "./typography";
+import { H4, Small } from "./typography";
 
 interface ProductOption {
   label: string;
@@ -95,7 +95,7 @@ export function ProductCard({
 
         {/* Product Type */}
         <div className="space-y-1.5">
-          <p className="text-sm text-neutral-700">Product Type :</p>
+          <Small className="text-neutral-700">Product Type :</Small>
           <div className="flex flex-wrap gap-1.5">
             {productTypes.map((type) => (
               <button
@@ -116,7 +116,7 @@ export function ProductCard({
 
         {/* Size */}
         <div className="space-y-1.5">
-          <p className="text-sm text-neutral-700">Size :</p>
+          <Small className="text-neutral-700">Size :</Small>
           <div className="flex flex-wrap gap-1.5">
             {sizes.map((size) => (
               <button
@@ -137,7 +137,7 @@ export function ProductCard({
 
         {/* Package Type */}
         <div className="space-y-1.5">
-          <p className="text-sm text-neutral-700">Package Type :</p>
+          <Small className="text-neutral-700">Package Type :</Small>
           <div className="flex flex-wrap gap-1.5">
             {packageTypes.map((pkg) => (
               <button

@@ -44,14 +44,6 @@ export default function LoginPage() {
             />
           </svg>
         </div>
-        {/* <Image
-          src="/images/logo.svg"
-          alt="Wady's logo"
-          width={37}
-          height={37}
-          className="mb-5"
-          priority
-        /> */}
       </section>
     </main>
   );

@@ -91,9 +91,8 @@ const config: Config = {
       center: true,
       padding: "1rem",
       screens: {
-        // sm: "100%",
-        // xl: "1280px",
-        "2xl": "1440px",
+        sm: "100%",
+        "2xl": "1280px",
       },
     },
     extend: {
@@ -102,13 +101,6 @@ const config: Config = {
         DEFAULT: "var(--radius)",
         lg: "calc(var(--radius) + 4px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      fontWeight: {
-        light: "300",
-        normal: "400",
-        medium: "500",
-        semibold: "600",
-        bold: "700",
       },
     },
   },

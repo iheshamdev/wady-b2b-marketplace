@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { H3 } from "./typography";
+
 // Define category type
 type Category = {
   id: number;
@@ -66,11 +68,11 @@ const categories: Category[] = [
 export function CategoryList() {
   return (
     <section>
-      <h2 className="mb-4 text-xl font-semibold">Category</h2>
+      <H3 className="mb-4">Category</H3>
       <div className="flex flex-wrap gap-6">
         {categories.map((category) => (
           <Link key={category.id} href="#" className="group relative">
-            <span className="absolute start-2 top-2 text-sm font-semibold text-neutral-800">
+            <span className="absolute start-2 top-2 text-sm font-semibold">
               {category.name}
             </span>
             <Image

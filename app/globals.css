@@ -58,10 +58,10 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply m-0 box-border p-0;
   }
   body {
-    @apply bg-background font-normal text-foreground;
+    @apply bg-background font-medium text-foreground;
   }
 }
 
