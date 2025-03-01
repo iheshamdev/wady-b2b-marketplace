@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Facebook, Instagram, MessageCircle, Twitter } from "lucide-react";
 
 import { P, Small } from "../shared/typography";
 import { Icons } from "../ui/icons";
@@ -103,7 +102,7 @@ export function SiteFooter() {
               <P className="cursor-pointer text-primary">
                 Have a question? We are here to help
               </P>
-              <div className="flex size-11 items-center justify-center rounded-full bg-primary">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary">
                 <Icons.MessageCircleMore className="fill-white text-transparent" />
               </div>
             </div>

@@ -1,127 +1,150 @@
-// import Cookies from "js-cookie";
+import { cookies } from "next/headers";
+import { deleteCookie, getCookie } from "cookies-next";
+import Cookies from "js-cookie";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Define types for HTTP methods
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-
-// Define the structure for API responses
-interface ApiResponse<T> {
-  data: T;
-  message: string;
-  status: number;
+interface HttpArgs {
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  endpoint: string;
+  body?: any;
+  auth?: boolean;
+  contentType?: string;
+  headers?: Record<string, string>;
+  options?: {
+    throwError?: boolean;
+    handlePermissionError?: boolean;
+    returnFullResponse?: boolean;
+  };
 }
 
-// Define the structure for API errors
-interface ApiError {
-  message: string;
-  status: number;
-}
-
-// Helper function to handle API requests
-async function apiRequest<T>(
-  endpoint: string,
-  method: HttpMethod,
-  options: RequestInit = {},
-): Promise<ApiResponse<T>> {
-  // const token = useAuthStore.getState().token;
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
-
-  // if (token) {
-  //   headers["Authorization"] = `Bearer ${token}`;
-  // }
-
-  // const locale = Cookies.get("locale") || "en";
-  // headers["Accept-Language"] = locale;
-
-  const config: RequestInit = {
-    method,
-    headers,
-    ...options,
-  };
-
-  // if (config.body instanceof FormData) {
-  //   delete headers["Content-Type"];
-  // } else
-  if (typeof config.body === "object") {
-    config.body = JSON.stringify(config.body);
+// Helper function to handle redirects
+const handleRedirect = (path: string) => {
+  if (typeof window !== "undefined") {
+    const currentPath = window.location.pathname + window.location.search;
+    const redirectPath =
+      path === "/login"
+        ? `${path}?redirect=${encodeURIComponent(currentPath)}`
+        : path;
+    window.location.href = redirectPath;
+  } else {
+    // throw new Error("Unauthorized");
   }
+};
 
+// Helper function to get the auth token from cookies
+const getAuthToken = async (): Promise<string | undefined> => {
+  if (typeof window === "undefined") {
+    const { cookies } = await import("next/headers");
+    const cookieStore = cookies();
+    const token = (await cookieStore).get("auth_token")?.value;
+    console.log(
+      "window is undefined, It's a server component, so token will be:",
+      token,
+    );
+    return token;
+  } else {
+    const { getCookie } = await import("cookies-next");
+    const token = getCookie("auth_token");
+    console.log(
+      "window is defined, It's a client component, so token will be:",
+      token,
+    );
+    return token;
+  }
+};
+
+const apiCall = async ({
+  method,
+  endpoint,
+  body = {},
+  auth = true,
+  contentType = "application/json",
+  headers = {},
+  options = {
+    throwError: false,
+    handlePermissionError: true,
+    returnFullResponse: false,
+  },
+}: HttpArgs): Promise<any> => {
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
-    const data = await response.json();
+    const token = await getAuthToken();
+    console.log("new api call", method, endpoint, token);
 
-    if (!response.ok) {
-      throw {
-        message: data.message || "An error occurred",
-        status: response.status,
-      };
+    const requestHeaders: Record<string, string> = {
+      "Content-Type": contentType,
+      ...(auth && token && { Authorization: `Bearer ${token}` }),
+      ...headers,
+    };
+
+    if (body instanceof FormData) {
+      delete requestHeaders["Content-Type"];
     }
 
-    return {
-      data,
-      status: response.status,
-      message: "Success",
-    };
-  } catch (error) {
-    throw error as ApiError;
-  }
-}
+    const url = `${BASE_URL}/${endpoint}`;
 
-// Define API methods
-export const getApi = <T>(endpoint: string, options?: RequestInit) =>
-  apiRequest<T>(endpoint, "GET", options);
+    const requestInit: RequestInit = {
+      method,
+      headers: requestHeaders,
+    };
+
+    if (method !== "GET" && body) {
+      requestInit.body = body instanceof FormData ? body : JSON.stringify(body);
+    }
+
+    const response = await fetch(url, requestInit);
+    const responseData = await response.json();
+    console.log("apiCall -> ", method, endpoint, responseData);
+
+    if (!response.ok) {
+      // Handle unauthorized access
+      if (response.status === 401) {
+        console.log("Unauthorized access");
+        // Clear auth token
+        const { deleteCookie } = await import("cookies-next");
+        deleteCookie("auth_token");
+        handleRedirect("/login");
+        return response;
+      }
+
+      return response;
+    }
+
+    return options.returnFullResponse ? response : responseData;
+  } catch (error) {
+    console.error("API Request Failed:", error);
+    if (options.throwError) {
+      throw error;
+    }
+    return error;
+  }
+};
+
+// Utility functions for different HTTP methods
+export const getApi = <T>(
+  endpoint: string,
+  options?: Omit<HttpArgs, "method" | "endpoint">,
+): Promise<T> => apiCall({ method: "GET", endpoint, ...options });
 
 export const postApi = <T>(
   endpoint: string,
   body: any,
-  options?: RequestInit,
-) => apiRequest<T>(endpoint, "POST", { ...options, body });
+  options?: Omit<HttpArgs, "method" | "endpoint" | "body">,
+): Promise<T> => apiCall({ method: "POST", endpoint, body, ...options });
 
-export const putApi = <T>(endpoint: string, body: any, options?: RequestInit) =>
-  apiRequest<T>(endpoint, "PUT", { ...options, body });
+export const putApi = <T>(
+  endpoint: string,
+  body: any,
+  options?: Omit<HttpArgs, "method" | "endpoint" | "body">,
+): Promise<T> => apiCall({ method: "PUT", endpoint, body, ...options });
 
-export const deleteApi = <T>(endpoint: string, options?: RequestInit) =>
-  apiRequest<T>(endpoint, "DELETE", options);
+export const deleteApi = <T>(
+  endpoint: string,
+  options?: Omit<HttpArgs, "method" | "endpoint">,
+): Promise<T> => apiCall({ method: "DELETE", endpoint, ...options });
 
 export const patchApi = <T>(
   endpoint: string,
   body: any,
-  options?: RequestInit,
-) => apiRequest<T>(endpoint, "PATCH", { ...options, body });
-
-// Create a QueryClient instance
-// export const queryClient = new QueryClient();
-
-// // Example function using the API methods
-// export async function getProducts() {
-//   return getApi<Product[]>("/api/products");
-// }
-
-// // Define Product type
-// interface Product {
-//   id: string;
-//   name: string;
-//   price: number;
-// }
-
-// // Login form schema
-// export const loginSchema = z.object({
-//   email: z.string().email("Invalid email address"),
-//   password: z.string().min(8, "Password must be at least 8 characters"),
-// });
-
-// export type LoginFormData = z.infer<typeof loginSchema>;
-
-// // Login function
-// export async function login(data: LoginFormData) {
-//   const response = await postApi<{ token: string }>("/api/login", data);
-//   useAuthStore.getState().setToken(response.data.token);
-//   return response;
-// }
-
-// // Export the auth store hook for use in components
-// export { useAuthStore };
+  options?: Omit<HttpArgs, "method" | "endpoint" | "body">,
+): Promise<T> => apiCall({ method: "PATCH", endpoint, body, ...options });

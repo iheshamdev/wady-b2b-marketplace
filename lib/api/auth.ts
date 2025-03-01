@@ -10,7 +10,7 @@ type GenerateOTPResponse = {
 
 type VerifyOTPResponse = {
   message: string;
-  success: boolean;
+  success?: boolean;
   token?: string;
   user?: any;
 };
@@ -21,6 +21,7 @@ export const generateOTP = async (phoneNumber: string): Promise<any> => {
     const response = await postApi<{ message: string }>("auth/generate-otp", {
       phoneNumber,
     });
+    console.log(phoneNumber, response);
 
     console.log("OTP generated successfully:", response);
     toast.success("OTP sent successfully");

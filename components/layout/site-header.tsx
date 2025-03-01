@@ -1,24 +1,21 @@
 "use client";
 
+import { useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { usePathname } from "@/i18n/routing";
+import { Locale } from "@/i18n/config";
+import { setUserLocale } from "@/services/locale";
 import { useLocale } from "next-intl";
 
+import { cn } from "@/lib/utils";
+
 import { Small } from "../shared/typography";
-import { UserAvatar } from "../ui/avatar";
 import { Icons } from "../ui/icons";
 import NavMenu from "./nav-menu";
 
 export function SiteHeader() {
   const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
-  const toggleLocale = () => {
-    const newLocale = locale === "ar" ? "en" : "ar";
-    router.push(`/${newLocale}${pathname}`);
-  };
+  const [isPending, startTransition] = useTransition();
   return (
     <header className="bg-primary">
       <div className="container flex items-center justify-between py-3">
@@ -41,8 +38,15 @@ export function SiteHeader() {
             </div>
           </div>
           <div
-            onClick={toggleLocale}
-            className="flex cursor-pointer items-center gap-2 border-s border-neutral-400 bg-transparent px-4 text-sm text-white"
+            onClick={() =>
+              startTransition(() => {
+                setUserLocale((locale === "ar" ? "en" : "ar") as Locale);
+              })
+            }
+            className={cn(
+              "flex cursor-pointer items-center gap-2 border-s border-neutral-400 bg-transparent px-4 text-sm text-white",
+              isPending && "pointer-events-none opacity-60",
+            )}
           >
             {locale === "ar" ? "EN" : "عربي"}
           </div>
@@ -50,7 +54,6 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-8">
           <NavMenu />
-          <UserAvatar />
         </div>
       </div>
     </header>

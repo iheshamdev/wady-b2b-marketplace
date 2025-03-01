@@ -19,5 +19,8 @@
       "invalidCredentials": "Invalid email or password",
       "required": "This field is required"
     }
+  },
+  "HomePage": {
+    "title": "Welcome to wady"
   }
 }

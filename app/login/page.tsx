@@ -22,7 +22,7 @@ export default function LoginPage() {
         </header>
         <div className="flex flex-1 items-center justify-center">
           <Image
-            src="/illustrations/login.png"
+            src="/images/illustrations/login.png"
             alt="Retailers and suppliers connected easily"
             width={694}
             height={468}

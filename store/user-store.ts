@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -24,15 +25,33 @@ const useUserStore = create<AuthStore>()(
     (set) => ({
       loading: false,
       error: null,
-      token: null,
-      user: null,
+      token: Cookies.get("auth_token") || null,
+      user: Cookies.get("user")
+        ? JSON.parse(Cookies.get("user") || "null")
+        : null,
 
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
-      setToken: (token) => set({ token }),
-      setUser: (user) => set({ user }),
+      setToken: (token) => {
+        if (token) {
+          Cookies.set("auth_token", token, { expires: 7 });
+        } else {
+          Cookies.remove("auth_token");
+        }
+        set({ token });
+      },
+      setUser: (user) => {
+        if (user) {
+          Cookies.set("user", JSON.stringify(user), { expires: 7 });
+        } else {
+          Cookies.remove("user");
+        }
+        set({ user });
+      },
 
       logout: () => {
+        Cookies.remove("auth_token");
+        Cookies.remove("user");
         set({ token: null, user: null, error: null, loading: false });
         if (typeof window !== "undefined") {
           window.location.href = "/login";
@@ -41,8 +60,6 @@ const useUserStore = create<AuthStore>()(
     }),
     {
       name: "user-store",
-      // storage: createJSONStorage(() => localStorage), // Ensures correct storage
-      // partialize: (state) => ({ token: state.token, user: state.user }), // Only persist needed fields
     },
   ),
 );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { otpSchema, phoneSchema } from "@/schemas/auth";
 import useUserStore from "@/store/user-store";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +16,7 @@ import { H2, P } from "../shared/typography";
 
 export const LoginForm = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
+  const router = useRouter();
   const { loading, error, setLoading, setError, setToken, setUser } =
     useUserStore();
   const {
@@ -36,16 +38,15 @@ export const LoginForm = () => {
       if (!phoneNumber) {
         // Step 1: Generate OTP
         const phone = "+974" + data.phoneNumber;
-        await generateOTP(phone); // Call your API to generate OTP
-        setPhoneNumber(phone); // Save the phone number in the store
+        await generateOTP(phone);
+        setPhoneNumber(phone);
       } else {
         // Step 2: Verify OTP
         const response = await verifyOTP(phoneNumber, otp);
-        console.log("Sending OTP to:", response);
-        if (response?.data?.token) {
-          window.location.href = "/";
-          setToken(response.data.token);
-          setUser(response.data.user);
+        if (response?.token) {
+          setUser(response.user);
+          setToken(response.token);
+          router.push("/");
         }
       }
     } catch (err: any) {
