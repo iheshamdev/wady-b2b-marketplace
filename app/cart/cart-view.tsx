@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCartStore } from "@/store/cart-store";
-import { Minus, Plus } from "lucide-react";
 
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { QuantityCounter } from "@/components/ui/quantity-counter";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, subtotal } = useCartStore();
+  const { items, removeItem, subtotal } = useCartStore();
   const [specialInstructions, setSpecialInstructions] = useState("");
 
   return (
@@ -22,7 +22,7 @@ export default function CartPage() {
         <div className="py-12 text-center">
           <p className="text-muted-foreground">Your cart is empty</p>
           <Button className="mt-4" variant="outline" asChild>
-            <a href="/">Continue Shopping</a>
+            <Link href="/">Continue Shopping</Link>
           </Button>
         </div>
       ) : (
@@ -41,13 +41,13 @@ export default function CartPage() {
                 className="grid grid-cols-12 items-center gap-4 py-6"
               >
                 <div className="col-span-6 flex gap-4">
-                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                  <div className="size-20 shrink-0 overflow-hidden rounded-md bg-muted">
                     <Image
                       src={item.image || "/placeholder.svg"}
                       alt={item.name}
                       width={80}
                       height={80}
-                      className="h-full w-full object-cover"
+                      className="size-full object-cover"
                     />
                   </div>
                   <div>

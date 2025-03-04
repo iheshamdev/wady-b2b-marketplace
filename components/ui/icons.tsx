@@ -1,5 +1,6 @@
 import {
   Bell,
+  Building2,
   Calendar,
   Check,
   ChevronRight,
@@ -27,6 +28,7 @@ import {
   Store,
   Truck,
   User,
+  WavesIcon,
   X,
 } from "lucide-react";
 
@@ -40,6 +42,7 @@ export const Icons = {
   CircleChevronLeft,
   CircleChevronRight,
   Check,
+  Wave: WavesIcon,
   Globe,
   ChevronRight,
   MoveRight,
@@ -52,6 +55,7 @@ export const Icons = {
   Bell,
   Calendar,
   MapPin,
+  Building2,
   Logs,
   Minus,
   Plus,

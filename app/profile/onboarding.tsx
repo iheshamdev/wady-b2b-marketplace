@@ -2,20 +2,15 @@
 
 import type React from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
-import { Building2, Check, MapPin, WavesIcon as Wave } from "lucide-react";
-import { useTranslations } from "next-intl";
 
 import { postApi } from "@/lib/http";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import CompleteProfileCard from "@/components/ui/complete-profile-card";
 import { Icons } from "@/components/ui/icons";
-import { Progress } from "@/components/ui/progress";
 import BusinessAddressForm from "@/components/forms/business-address-form";
 import BusinessInfoForm from "@/components/forms/business-info-form";
-import { H3, H4, Large, Lead, P } from "@/components/shared/typography";
+import { H3, Large, P } from "@/components/shared/typography";
 
 type Step = {
   id: number;
@@ -33,26 +28,25 @@ interface User {
 }
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const { setUser } = useUserStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState<Step[]>([
     {
       id: 0,
       title: "Primary login",
-      icon: <Wave className="h-4 w-4" />,
+      icon: <Icons.Wave size={18} />,
       isCompleted: true,
     },
     {
       id: 1,
       title: "Business Information",
-      icon: <Building2 className="h-4 w-4" />,
+      icon: <Icons.Building2 size={18} />,
       isCompleted: false,
     },
     {
       id: 2,
       title: "Business Address",
-      icon: <MapPin className="h-4 w-4" />,
+      icon: <Icons.MapPin size={18} />,
       isCompleted: false,
     },
   ]);
@@ -139,7 +133,6 @@ export default function OnboardingPage() {
               onComplete={(address) => {
                 completeStep(2);
                 submitBusinessProfile({ ...data, address });
-                // router.push("/profile");
               }}
             />
           )}
