@@ -3,9 +3,11 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import useUserStore from "@/store/user-store";
 import { Building2, Check, MapPin, WavesIcon as Wave } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { postApi } from "@/lib/http";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import CompleteProfileCard from "@/components/ui/complete-profile-card";
@@ -22,8 +24,17 @@ type Step = {
   isCompleted: boolean;
 };
 
+interface User {
+  id: string;
+  phoneNumber: string;
+  isVerified: boolean;
+  name?: string;
+  businessProfile?: any;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
+  const { setUser } = useUserStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState<Step[]>([
     {
@@ -45,8 +56,9 @@ export default function OnboardingPage() {
       isCompleted: false,
     },
   ]);
+  const [data, setData] = useState<any>({});
 
-  const progress = (currentStep / (steps.length - 1)) * 100;
+  const progress = (currentStep / (steps.length - 1)) * 60;
 
   const completeStep = (stepId: number) => {
     setSteps(
@@ -55,6 +67,13 @@ export default function OnboardingPage() {
       ),
     );
     setCurrentStep(stepId + 1);
+  };
+
+  const submitBusinessProfile = async (body: any) => {
+    const response = await postApi<User>("business-profile", {
+      ...body,
+    });
+    response && setUser(response);
   };
 
   return (
@@ -106,16 +125,21 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="p-8">
           {currentStep === 1 && (
-            <BusinessInfoForm onComplete={() => completeStep(1)} />
+            <BusinessInfoForm
+              onComplete={(businessData) => {
+                setData(businessData);
+                completeStep(1);
+              }}
+            />
           )}
           {currentStep === 2 && (
             <BusinessAddressForm
-              onComplete={() => {
+              onComplete={(address) => {
                 completeStep(2);
-                router.push("/profile");
+                submitBusinessProfile({ ...data, address });
+                // router.push("/profile");
               }}
             />
           )}

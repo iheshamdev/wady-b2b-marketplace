@@ -16,13 +16,13 @@ interface QuantityCounterProps {
 }
 
 export function QuantityCounter({
-  initialValue = 1,
-  min = 0,
-  max = 999,
+  initialValue = 2,
+  min = 2,
+  max = 100,
   onChange,
   className,
 }: QuantityCounterProps) {
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(initialValue || min);
 
   const increment = () => {
     if (value < max) {

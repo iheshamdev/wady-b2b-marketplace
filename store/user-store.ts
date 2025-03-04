@@ -6,6 +6,8 @@ interface User {
   id: string;
   phoneNumber: string;
   isVerified: boolean;
+  name?: string;
+  businessProfile?: any;
 }
 
 type AuthStore = {

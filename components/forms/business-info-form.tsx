@@ -1,10 +1,11 @@
 "use client";
 
+import useUserStore from "@/store/user-store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import { formatPhoneNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,6 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { H3, P } from "../shared/typography";
+import PhoneInput from "../ui/phone-input";
 import {
   Select,
   SelectContent,
@@ -28,19 +31,19 @@ export const businessInfoSchema = z.object({
   businessName: z
     .string()
     .min(2, "Business name must be at least 2 characters"),
-  businessPhone: z.string().min(8, "Please enter a valid phone number"),
+  businessPhoneNumber: z.string().min(8, "Please enter a valid phone number"),
   businessType: z.string().min(1, "Business Type is required"),
   email: z
     .string()
     .email("Please enter a valid email address")
     .optional()
     .or(z.literal("")),
-  commercialRegNumber: z
+  commercialRegistrationNumber: z
     .string()
     .min(1, "Commercial registration number is recommended")
     .optional()
     .or(z.literal("")),
-  commercialRegCertificate: z
+  commercialRegistrationCertificate: z
     .string()
     .min(1, "Commercial registration certificate is required")
     .optional()
@@ -50,42 +53,39 @@ export const businessInfoSchema = z.object({
 export type BusinessInfoValues = z.infer<typeof businessInfoSchema>;
 
 interface BusinessInfoFormProps {
-  onComplete: () => void;
+  onComplete: (data: any) => void;
 }
 
 export default function BusinessInfoForm({
   onComplete,
 }: BusinessInfoFormProps) {
-  const t = useTranslations();
+  const { user } = useUserStore();
   const form = useForm<BusinessInfoValues>({
     resolver: zodResolver(businessInfoSchema),
     defaultValues: {
       businessName: "",
-      businessPhone: "",
+      businessPhoneNumber: formatPhoneNumber(user?.phoneNumber, false) || "",
       businessType: "",
       email: "",
-      commercialRegNumber: "",
-      commercialRegCertificate: "",
+      commercialRegistrationNumber: "",
+      commercialRegistrationCertificate: "",
     },
   });
 
   const onSubmit = async (data: BusinessInfoValues) => {
-    try {
-      // Here you would typically send the data to your API
-      console.log(data);
-      onComplete();
-    } catch (error) {
-      console.error(error);
-    }
+    onComplete({
+      ...data,
+      businessPhoneNumber: formatPhoneNumber(data.businessPhoneNumber),
+    });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Business Information</h2>
-        <p className="text-muted-foreground">
+        <H3>Business Information</H3>
+        <P className="text-muted-foreground">
           Please provide your business details
-        </p>
+        </P>
       </div>
 
       <Form {...form}>
@@ -106,12 +106,15 @@ export default function BusinessInfoForm({
 
           <FormField
             control={form.control}
-            name="businessPhone"
+            name="businessPhoneNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Phone</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter business phone number" {...field} />
+                  <PhoneInput
+                    placeholder="Enter business phone number"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -154,7 +157,7 @@ export default function BusinessInfoForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Email (optional)</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Enter business email"
@@ -169,10 +172,12 @@ export default function BusinessInfoForm({
 
           <FormField
             control={form.control}
-            name="commercialRegNumber"
+            name="commercialRegistrationNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Commercial Registration Number</FormLabel>
+                <FormLabel>
+                  Commercial Registration Number (optional but recommanded)
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="Enter registration number" {...field} />
                 </FormControl>
@@ -183,11 +188,11 @@ export default function BusinessInfoForm({
 
           <FormField
             control={form.control}
-            name="commercialRegCertificate"
+            name="commercialRegistrationCertificate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Business Commercial Registration Certificate
+                  Business Commercial Registration Certificate (optional)
                 </FormLabel>
                 <FormControl>
                   <Input type="file" {...field} />

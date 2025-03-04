@@ -77,10 +77,6 @@ const apiCall = async ({
       ...headers,
     };
 
-    if (body instanceof FormData) {
-      delete requestHeaders["Content-Type"];
-    }
-
     const url = `${BASE_URL}/${endpoint}`;
 
     const requestInit: RequestInit = {

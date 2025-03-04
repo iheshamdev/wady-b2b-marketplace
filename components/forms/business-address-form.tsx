@@ -1,10 +1,11 @@
 "use client";
 
+import { format } from "path";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { z } from "zod";
 
+import { formatPhoneNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,6 +16,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import PhoneInput from "@/components/ui/phone-input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -23,78 +27,97 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const businessAddressSchema = z.object({
-  streetAddress: z.string().min(1, "Street address is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  postalCode: z.string().min(1, "Postal code is required"),
-  country: z.string().min(1, "Country is required"),
+import { H3, Lead } from "../shared/typography";
+
+const branchTypes = [
+  "Retail",
+  "Wholesale",
+  "Distributor",
+  "Manufacturer",
+  "Restaurant",
+  "Cafe",
+  "Hotel",
+  "Other",
+] as const;
+
+const cities = [
+  "Doha",
+  "Al Wakrah",
+  "Al Khor",
+  "Al Rayyan",
+  "Umm Salal",
+  "Al Daayen",
+  "Al Shamal",
+  "Al Shahaniya",
+] as const;
+
+const formSchema = z.object({
+  branchName: z.string().min(2, {
+    message: "Branch name must be at least 2 characters.",
+  }),
+  branchType: z.enum(branchTypes, {
+    required_error: "Please select a branch type.",
+  }),
+  city: z.enum(cities, {
+    required_error: "Please select a city.",
+  }),
+  zoneNumber: z.string().min(1, "Zone number is required."),
+  streetNumber: z.string().min(1, "Street number is required."),
+  buildingNumber: z.string().min(1, "Building number is required."),
+  receiverName: z.string().min(2, {
+    message: "Receiver name must be at least 2 characters.",
+  }),
+  receiverPhoneNumber: z
+    .string()
+    .min(1, "Phone number is required")
+    .regex(
+      /^\d{8}$/,
+      "Phone number must be a valid Qatar number (e.g., +974 12345678)",
+    ),
+  preferredDeliveryTime: z.enum(["morning", "evening"], {
+    required_error: "Please select a delivery time.",
+  }),
 });
-export type BusinessAddressValues = z.infer<typeof businessAddressSchema>;
 
-interface BusinessAddressFormProps {
-  onComplete: () => void;
-}
-
-export default function BusinessAddressForm({
+export default function AddressForm({
   onComplete,
-}: BusinessAddressFormProps) {
-  const t = useTranslations();
-  const form = useForm<BusinessAddressValues>({
-    resolver: zodResolver(businessAddressSchema),
+}: {
+  onComplete: (address: any) => void;
+}) {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      streetAddress: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
+      branchName: "",
+      zoneNumber: "",
+      streetNumber: "",
+      buildingNumber: "",
+      receiverName: "",
+      receiverPhoneNumber: "",
+      preferredDeliveryTime: "morning",
     },
   });
 
-  const onSubmit = async (data: BusinessAddressValues) => {
-    try {
-      // Here you would typically send the data to your API
-      console.log(data);
-      onComplete();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  function onSubmit(address: z.infer<typeof formSchema>) {
+    onComplete({
+      ...address,
+      receiverPhoneNumber: formatPhoneNumber(address.receiverPhoneNumber),
+    });
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Business Address</h2>
-        <p className="text-muted-foreground">
-          Please provide your business address details
-        </p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="streetAddress"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Street Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter street address" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid gap-4 md:grid-cols-2">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="space-y-6">
+          <H3>Add Business Address</H3>
+          <div className="space-y-4">
             <FormField
               control={form.control}
-              name="city"
+              name="branchName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City</FormLabel>
+                  <FormLabel>Branch name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter city" {...field} />
+                    <Input placeholder="Branch Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,56 +126,25 @@ export default function BusinessAddressForm({
 
             <FormField
               control={form.control}
-              name="state"
+              name="branchType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State/Province</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter state or province" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="postalCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Postal Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter postal code" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>Branch Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a country" />
+                        <SelectValue placeholder="Branch Type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="sa">Saudi Arabia</SelectItem>
-                      <SelectItem value="ae">United Arab Emirates</SelectItem>
-                      <SelectItem value="kw">Kuwait</SelectItem>
-                      <SelectItem value="bh">Bahrain</SelectItem>
-                      <SelectItem value="qa">Qatar</SelectItem>
-                      <SelectItem value="om">Oman</SelectItem>
+                      {branchTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -160,12 +152,143 @@ export default function BusinessAddressForm({
               )}
             />
           </div>
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormLabel>Select a City</FormLabel>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="City" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="zoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Zone Number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="streetNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Street Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Street Number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="buildingNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Building Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Building Number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="receiverName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Receiver's Contact Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Receiver's Contact Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="receiverPhoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Receiver's Contact Number</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      placeholder="Receiver's Contact Number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="preferredDeliveryTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred delivery time</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="morning" id="morning" />
+                        <Label htmlFor="morning">Morning</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="evening" id="evening" />
+                        <Label htmlFor="evening">Evening</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <Button type="submit" className="w-full">
-            Complete Profile
+            Submit
           </Button>
-        </form>
-      </Form>
-    </div>
+        </div>
+      </form>
+    </Form>
   );
 }
