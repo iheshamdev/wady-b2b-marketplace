@@ -1,4 +1,6 @@
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers";
+
+import { isBrowser } from "./utils";
 
 type CookieOptions = {
   maxAge?: number;
@@ -10,15 +12,14 @@ type CookieOptions = {
   sameSite?: "strict" | "lax" | "none";
 };
 
-const isBrowser = typeof window !== "undefined";
-
-export async function getCookie(key: string): Promise<string | undefined> {
+export async function getCookie(key: string): Promise<string | null> {
   if (isBrowser) {
     const { getCookie } = await import("cookies-next");
-    return getCookie(key) as string | undefined;
+    return (getCookie(key) as string | undefined) ?? null;
   } else {
+    const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
-    return cookieStore.get(key)?.value;
+    return cookieStore.get(key)?.value ?? null;
   }
 }
 
@@ -31,6 +32,7 @@ export async function setCookie(
     const { setCookie } = await import("cookies-next");
     setCookie(key, value, options);
   } else {
+    const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     cookieStore.set(key, value, options);
   }
@@ -44,6 +46,7 @@ export async function deleteCookie(
     const { deleteCookie } = await import("cookies-next");
     deleteCookie(key, options);
   } else {
+    const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     cookieStore.set(key, "", { ...options, maxAge: 0 });
   }

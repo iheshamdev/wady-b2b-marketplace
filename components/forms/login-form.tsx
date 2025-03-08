@@ -10,14 +10,22 @@ import { Controller, useForm } from "react-hook-form";
 import OtpInput from "react-otp-input";
 
 import { generateOTP, verifyOTP } from "@/lib/api/auth";
+import { postApi } from "@/lib/http";
 import { Button, Input, Label } from "@/components/ui";
 
 import { H2, P } from "../shared/typography";
 
+type VerifyOTPResponse = {
+  message: string;
+  success?: boolean;
+  token?: string;
+  user?: any;
+};
+
 export const LoginForm = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const router = useRouter();
-  const { loading, error, setLoading, setError, setToken, setUser } =
+  const { isLoading, error, setIsLoading, setError, setToken, setUser } =
     useUserStore();
   const {
     register,
@@ -31,18 +39,31 @@ export const LoginForm = () => {
   const [otp, setOtp] = useState("");
 
   const onSubmit = async (data: any) => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
 
     try {
       if (!phoneNumber) {
         // Step 1: Generate OTP
         const phone = "+974" + data.phoneNumber;
-        await generateOTP(phone);
+        const { response, error } = await postApi<{ message: string }>(
+          "auth/generate-otp",
+          {
+            phoneNumber: phone,
+          },
+        );
+        console.log("HIIII", phone, response, error);
         setPhoneNumber(phone);
       } else {
         // Step 2: Verify OTP
-        const response = await verifyOTP(phoneNumber, otp);
+        const { response, error } = await postApi<VerifyOTPResponse>(
+          "auth/verify-otp",
+          {
+            phoneNumber,
+            otp,
+          },
+        );
+        console.log("HIIII verify", response, error);
         if (response?.token) {
           setUser(response.user);
           setToken(response.token);
@@ -52,7 +73,7 @@ export const LoginForm = () => {
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -83,7 +104,7 @@ export const LoginForm = () => {
               {...register("phoneNumber")}
               placeholder="Enter your phone number"
               className="ml-[-1px] rounded-l-none"
-              disabled={loading}
+              disabled={isLoading}
             />
           </div>
           {errors.phoneNumber && (
@@ -124,8 +145,8 @@ export const LoginForm = () => {
         </div>
       )}
       {error && <p className="text-red-500">{error}</p>}
-      <Button type="submit" className="mt-6 w-full" disabled={loading}>
-        {loading ? "Loading..." : phoneNumber ? "Verify OTP" : "Send OTP"}
+      <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
+        {isLoading ? "Loading..." : phoneNumber ? "Verify OTP" : "Send OTP"}
       </Button>
       {phoneNumber && (
         <div className="mt-5 flex items-center justify-center">

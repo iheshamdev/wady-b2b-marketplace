@@ -38,6 +38,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ProductPage(props: Props) {
   const product = await getProduct((await props.params).id);
+  console.log("product", product);
 
   if (!product) {
     notFound();

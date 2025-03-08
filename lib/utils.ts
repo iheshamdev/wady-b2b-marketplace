@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 export function isClient(): boolean {
   return typeof window !== "undefined";
 }
+export const isBrowser = typeof window !== "undefined";
 
 export const formatPhoneNumber = (
   phone: string | undefined,

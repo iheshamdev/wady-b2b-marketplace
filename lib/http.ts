@@ -1,75 +1,33 @@
-import { cookies } from "next/headers";
-import { deleteCookie, getCookie } from "cookies-next";
-import Cookies from "js-cookie";
+import { BASE_URL, STATUS_CODES, TOKEN_KEY, USER_KEY } from "./constants";
+import { deleteCookie, getCookie } from "./cookies";
+import { isBrowser } from "./utils";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-interface HttpArgs {
+interface ApiCallProps {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   endpoint: string;
   body?: any;
   auth?: boolean;
   contentType?: string;
   headers?: Record<string, string>;
-  options?: {
-    throwError?: boolean;
-    handlePermissionError?: boolean;
-    returnFullResponse?: boolean;
-  };
 }
 
-// Helper function to handle redirects
-const handleRedirect = (path: string) => {
-  if (typeof window !== "undefined") {
-    const currentPath = window.location.pathname + window.location.search;
-    const redirectPath =
-      path === "/login"
-        ? `${path}?redirect=${encodeURIComponent(currentPath)}`
-        : path;
-    window.location.href = redirectPath;
-  } else {
-    // throw new Error("Unauthorized");
-  }
-};
+interface ApiCallResponse<T> {
+  response: T | null;
+  error: string | null;
+  status: number;
+}
 
-// Helper function to get the auth token from cookies
-const getAuthToken = async (): Promise<string | undefined> => {
-  if (typeof window === "undefined") {
-    const { cookies } = await import("next/headers");
-    const cookieStore = cookies();
-    const token = (await cookieStore).get("auth_token")?.value;
-    console.log(
-      "window is undefined, It's a server component, so token will be:",
-      token,
-    );
-    return token;
-  } else {
-    const { getCookie } = await import("cookies-next");
-    const token = getCookie("auth_token");
-    console.log(
-      "window is defined, It's a client component, so token will be:",
-      token,
-    );
-    return token;
-  }
-};
-
-const apiCall = async ({
+async function apiCall<T>({
   method,
   endpoint,
   body = {},
   auth = true,
   contentType = "application/json",
   headers = {},
-  options = {
-    throwError: false,
-    handlePermissionError: true,
-    returnFullResponse: false,
-  },
-}: HttpArgs): Promise<any> => {
+}: ApiCallProps): Promise<ApiCallResponse<T>> {
   try {
-    const token = await getAuthToken();
-    console.log("new api call", method, endpoint, token);
+    const token = await getCookie(TOKEN_KEY);
+    console.log("Calling a new api...", method, endpoint, token);
 
     const requestHeaders: Record<string, string> = {
       "Content-Type": contentType,
@@ -89,58 +47,98 @@ const apiCall = async ({
     }
 
     const response = await fetch(url, requestInit);
-    const responseData = await response.json();
-    console.log("apiCall -> ", method, endpoint, responseData);
+    const jsonRes = await response.json();
+    // console.log("apiCall -> ", method, endpoint, responseData);
 
+    // Handle specific status codes
     if (!response.ok) {
-      // Handle unauthorized access
-      if (response.status === 401) {
-        console.log("Unauthorized access");
-        // Clear auth token
-        const { deleteCookie } = await import("cookies-next");
-        deleteCookie("auth_token");
-        handleRedirect("/login");
-        return response;
+      // Handle unauthorized access (401)
+      if (response.status === STATUS_CODES.UNAUTHORIZED) {
+        console.error("Unauthorized access, redirecting to login");
+        // if (isBrowser) {
+        //   deleteCookie(TOKEN_KEY);
+        //   deleteCookie(USER_KEY);
+        //   window.location.reload();
+        // } else {
+        //   // ? How to Handle unauthorized access in server-side rendering
+        // }
+
+        return {
+          response: null,
+          error: jsonRes?.message || "Unauthorized access",
+          status: STATUS_CODES.UNAUTHORIZED,
+        };
       }
 
-      return response;
+      // Handle forbidden access (403)
+      if (response.status === STATUS_CODES.FORBIDDEN) {
+        console.error("Forbidden access");
+        // handle forbidden access logic here
+
+        return {
+          response: null,
+          error: jsonRes?.message || "Access forbidden",
+          status: STATUS_CODES.FORBIDDEN,
+        };
+      }
+
+      // Handle other error responses
+      return {
+        response: null,
+        error:
+          jsonRes?.message || `Request failed with status ${response.status}`,
+        status: response.status,
+      };
     }
 
-    return options.returnFullResponse ? response : responseData;
+    // Return successful response
+    return {
+      response: jsonRes,
+      error: null,
+      status: response.status,
+    };
   } catch (error) {
     console.error("API Request Failed:", error);
-    if (options.throwError) {
-      throw error;
-    }
-    return error;
+
+    return {
+      response: null,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+      status: STATUS_CODES.INTERNAL_SERVER_ERROR,
+    };
   }
-};
+}
 
 // Utility functions for different HTTP methods
+
 export const getApi = <T>(
   endpoint: string,
-  options?: Omit<HttpArgs, "method" | "endpoint">,
-): Promise<T> => apiCall({ method: "GET", endpoint, ...options });
+  options?: Omit<ApiCallProps, "method" | "endpoint">,
+): Promise<ApiCallResponse<T>> =>
+  apiCall<T>({ method: "GET", endpoint, ...options });
 
 export const postApi = <T>(
   endpoint: string,
   body: any,
-  options?: Omit<HttpArgs, "method" | "endpoint" | "body">,
-): Promise<T> => apiCall({ method: "POST", endpoint, body, ...options });
+  options?: Omit<ApiCallProps, "method" | "endpoint" | "body">,
+): Promise<ApiCallResponse<T>> =>
+  apiCall<T>({ method: "POST", endpoint, body, ...options });
 
 export const putApi = <T>(
   endpoint: string,
   body: any,
-  options?: Omit<HttpArgs, "method" | "endpoint" | "body">,
-): Promise<T> => apiCall({ method: "PUT", endpoint, body, ...options });
+  options?: Omit<ApiCallProps, "method" | "endpoint" | "body">,
+): Promise<ApiCallResponse<T>> =>
+  apiCall<T>({ method: "PUT", endpoint, body, ...options });
 
 export const deleteApi = <T>(
   endpoint: string,
-  options?: Omit<HttpArgs, "method" | "endpoint">,
-): Promise<T> => apiCall({ method: "DELETE", endpoint, ...options });
+  options?: Omit<ApiCallProps, "method" | "endpoint">,
+): Promise<ApiCallResponse<T>> =>
+  apiCall<T>({ method: "DELETE", endpoint, ...options });
 
 export const patchApi = <T>(
   endpoint: string,
   body: any,
-  options?: Omit<HttpArgs, "method" | "endpoint" | "body">,
-): Promise<T> => apiCall({ method: "PATCH", endpoint, body, ...options });
+  options?: Omit<ApiCallProps, "method" | "endpoint" | "body">,
+): Promise<ApiCallResponse<T>> =>
+  apiCall<T>({ method: "PATCH", endpoint, body, ...options });

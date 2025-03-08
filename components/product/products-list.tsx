@@ -1,40 +1,28 @@
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 import { Product, ProductsResponse } from "@/types/product";
+import { STATUS_CODES } from "@/lib/constants";
 import { getApi } from "@/lib/http";
 
 import { ProductCard } from "./product-card";
 
-async function getProducts() {
-  try {
-    const response = await getApi<ProductsResponse>("products");
-    return {
-      data: response.data || [],
-      metadata: response.metadata || {
-        currentPage: 1,
-        totalCount: 0,
-        limit: 10,
-        totalPages: 1,
-      },
-    };
-  } catch (error) {
-    return {
-      data: [],
-      metadata: { currentPage: 1, totalCount: 0, limit: 10, totalPages: 1 },
-    };
-  }
-}
 export default async function ProductsList() {
-  const { data: products, metadata } = await getProducts();
+  const { response, error, status } =
+    await getApi<ProductsResponse>("products");
 
-  if (products.length === 0) {
+  console.log("products", response);
+  // if (status === STATUS_CODES.UNAUTHORIZED) {
+  //   redirect("/login");
+  // }
+  if (response?.data?.length === 0) {
     return <p>No products available.</p>;
   }
 
   return (
     <div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-        {products.map((product: Product) => (
+        {response?.data.map((product: Product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

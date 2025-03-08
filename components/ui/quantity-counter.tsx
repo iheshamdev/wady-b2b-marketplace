@@ -16,9 +16,9 @@ interface QuantityCounterProps {
 }
 
 export function QuantityCounter({
-  initialValue = 2,
-  min = 2,
-  max = 100,
+  initialValue = 1,
+  min = 1,
+  max = 50,
   onChange,
   className,
 }: QuantityCounterProps) {

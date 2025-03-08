@@ -64,7 +64,7 @@ export default function OnboardingPage() {
   };
 
   const submitBusinessProfile = async (body: any) => {
-    const response = await postApi<User>("business-profile", {
+    const { response } = await postApi<User>("business-profile", {
       ...body,
     });
     response && setUser(response);

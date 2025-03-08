@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 
+import { USER_KEY } from "@/lib/constants";
 import CompleteProfileCard from "@/components/ui/complete-profile-card";
 import ProductsList from "@/components/product/products-list";
 import { CategoryList } from "@/components/shared/categories";
@@ -7,8 +8,8 @@ import { HeroCarousel } from "@/components/shared/hero-carousel";
 import { H2, H3, Lead } from "@/components/shared/typography";
 
 export default async function HomePage() {
-  const user = (await cookies()).get("user")
-    ? JSON.parse((await cookies()).get("user")?.value || "{}")
+  const user = (await cookies()).get(USER_KEY)
+    ? JSON.parse((await cookies()).get(USER_KEY)?.value || "{}")
     : null;
 
   console.log(user);
