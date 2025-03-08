@@ -1,7 +1,6 @@
+import Cookies from "js-cookie";
 import { create } from "zustand";
-
-import { TOKEN_KEY, USER_KEY } from "@/lib/constants";
-import { deleteCookie, getCookie, setCookie } from "@/lib/cookies";
+import { persist } from "zustand/middleware";
 
 interface User {
   id: string;
@@ -11,52 +10,60 @@ interface User {
   businessProfile?: any;
 }
 type Token = string | null;
-
 type AuthStore = {
   token: Token;
   user: User | null;
   isLoading: boolean;
   error: string | null;
-  setToken: (token: Token) => Promise<void>;
-  setUser: (user: User | null) => Promise<void>;
-  setIsLoading: (isLoading: boolean) => void;
+  setToken: (token: Token) => void;
+  setUser: (user: User | null) => void;
+  setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  initializeAuth: () => Promise<void>;
+  logout: () => void;
 };
 
-const useUserStore = create<AuthStore>((set) => ({
-  token: null,
-  user: null,
-  isLoading: false,
-  error: null,
-  setIsLoading: (isLoading) => set({ isLoading }),
-  setError: (error) => set({ error }),
-  setToken: async (token) => {
-    if (token) {
-      await setCookie(TOKEN_KEY, token, { maxAge: 7 * 24 * 60 * 60 });
-    } else {
-      await deleteCookie(TOKEN_KEY);
-    }
-    set({ token });
-  },
+const useUserStore = create<AuthStore>()(
+  persist(
+    (set) => ({
+      isLoading: false,
+      error: null,
+      token: Cookies.get("auth_token") || null,
+      user: Cookies.get("user")
+        ? JSON.parse(Cookies.get("user") || "null")
+        : null,
 
-  setUser: async (user) => {
-    if (user) {
-      await setCookie(USER_KEY, JSON.stringify(user), {
-        maxAge: 7 * 24 * 60 * 60,
-      });
-    } else {
-      await deleteCookie(USER_KEY);
-    }
-    set({ user });
-  },
+      setLoading: (isLoading) => set({ isLoading }),
+      setError: (error) => set({ error }),
+      setToken: (token) => {
+        if (token) {
+          Cookies.set("auth_token", token, { expires: 7 });
+        } else {
+          Cookies.remove("auth_token");
+        }
+        set({ token });
+      },
+      setUser: (user) => {
+        if (user) {
+          Cookies.set("user", JSON.stringify(user), { expires: 7 });
+        } else {
+          Cookies.remove("user");
+        }
+        set({ user });
+      },
 
-  initializeAuth: async () => {
-    const token = await getCookie(TOKEN_KEY);
-    const userCookie = await getCookie(USER_KEY);
-    const user = userCookie ? JSON.parse(userCookie) : null;
-    set({ token, user });
-  },
-}));
+      logout: () => {
+        Cookies.remove("auth_token");
+        Cookies.remove("user");
+        set({ token: null, user: null, error: null, isLoading: false });
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+      },
+    }),
+    {
+      name: "user-store",
+    },
+  ),
+);
 
 export default useUserStore;

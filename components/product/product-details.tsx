@@ -24,9 +24,9 @@ export function ProductDetails({ product }: { product: Product }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const searchParams = useSearchParams();
-  const addItem = useCartStore((state) => state.addItem);
+  // const addItem = useCartStore((state) => state.addItem);
 
-  const fetchCart = useCartStore((state) => state.fetchCart);
+  // const fetchCart = useCartStore((state) => state.fetchCart);
 
   // Initialize selected package from URL param if available
   useEffect(() => {
@@ -53,23 +53,17 @@ export function ProductDetails({ product }: { product: Product }) {
 
     setIsLoading(true);
 
-    try {
-      // Add to backend cart
-      const { response, error } = await postApi("cart/add", {
-        packageId: selectedPackage.id,
-        quantity,
-      });
+    const { response, error } = await postApi("cart/add", {
+      packageId: selectedPackage.id,
+      quantity,
+    });
 
-      // Fetch updated cart from API to sync with local store
-      await fetchCart();
-
+    if (response) {
       toast.success("Added to cart successfully");
-    } catch (error) {
-      console.error("Add to cart error:", error);
+    } else {
       toast.error("Something went wrong, please try again");
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (
