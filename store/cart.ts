@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { AddToCartRequest, CartItem, CartResponse } from "@/types/cart";
+import { STATUS_CODES } from "@/lib/constants";
 import { deleteApi, getApi, postApi } from "@/lib/http";
 
 type CartState = {
@@ -67,7 +68,7 @@ export const useCartStore = create<CartState>()(
       addCartItem: async ({ packageId, quantity }: AddToCartRequest) => {
         const state = get();
         state.setAddCartItemLoading(true);
-        const { response } = await postApi<CartResponse>("cart/add", {
+        const { response, error } = await postApi<CartResponse>("cart/add", {
           packageId,
           quantity,
         });
@@ -75,7 +76,10 @@ export const useCartStore = create<CartState>()(
           toast.success("Added to cart successfully");
           state.setCart(response);
         } else {
-          toast.error("Something went wrong, please try again");
+          if (error?.code === STATUS_CODES.FORBIDDEN) {
+            toast.error("Please complete your profile first.");
+            window.location.href = "/profile";
+          }
         }
         state.setAddCartItemLoading(false);
       },
