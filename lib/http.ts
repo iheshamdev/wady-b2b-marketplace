@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 import { BASE_URL, STATUS_CODES, TOKEN_KEY, USER_KEY } from "./constants";
 import { deleteCookie, getCookie } from "./cookies";
 import { isBrowser } from "./utils";
@@ -9,12 +11,55 @@ interface ApiCallProps {
   auth?: boolean;
   contentType?: string;
   headers?: Record<string, string>;
+  showGlobalError?: boolean; // Control whether to show global error toast
+}
+
+export interface ApiError {
+  message: string;
+  code: number;
 }
 
 interface ApiCallResponse<T> {
   response: T | null;
-  error: string | null;
-  status: number;
+  error: ApiError | null;
+}
+
+// Map of status codes to user-friendly messages
+const ERROR_MESSAGES: Record<number, string> = {
+  400: "Bad request. Please check your input.",
+  401: "Your session has expired. Please login again.",
+  403: "You don't have permission to access this resource.",
+  404: "The requested resource was not found.",
+  500: "Something went wrong on our server. Please try again later.",
+  502: "Server is temporarily unavailable. Please try again later.",
+  503: "Service unavailable. Please try again later.",
+};
+
+// Get a user-friendly error message based on status code
+function getErrorMessage(status: number, serverMessage?: string): string {
+  if (serverMessage) return serverMessage;
+  return ERROR_MESSAGES[status] || `An error occurred (${status})`;
+}
+
+// Handle global errors with toast notifications
+function handleGlobalError(status: number, message: string) {
+  // Handle unauthorized access (401)
+  if (status === STATUS_CODES.UNAUTHORIZED) {
+    toast.error(ERROR_MESSAGES[status]);
+
+    if (isBrowser) {
+      deleteCookie(TOKEN_KEY);
+      deleteCookie(USER_KEY);
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1000);
+    }
+    return;
+  }
+
+  // Show toast for other errors
+  toast.error(message);
 }
 
 async function apiCall<T>({
@@ -24,6 +69,7 @@ async function apiCall<T>({
   auth = true,
   contentType = "application/json",
   headers = {},
+  showGlobalError = true,
 }: ApiCallProps): Promise<ApiCallResponse<T>> {
   try {
     const token = await getCookie(TOKEN_KEY);
@@ -47,69 +93,56 @@ async function apiCall<T>({
     }
 
     const response = await fetch(url, requestInit);
-    const jsonRes = await response.json();
-    // console.log("apiCall -> ", method, endpoint, responseData);
+    const jsonResponse = await response.json();
 
-    // Handle specific status codes
+    // Handle non-OK responses
     if (!response.ok) {
-      // Handle unauthorized access (401)
-      if (response.status === STATUS_CODES.UNAUTHORIZED) {
-        console.error("Unauthorized access, redirecting to login");
-        // if (isBrowser) {
-        //   deleteCookie(TOKEN_KEY);
-        //   deleteCookie(USER_KEY);
-        //   window.location.reload();
-        // } else {
-        //   // ? How to Handle unauthorized access in server-side rendering
-        // }
+      const errorMessage = getErrorMessage(
+        response.status,
+        jsonResponse?.message,
+      );
 
-        return {
-          response: null,
-          error: jsonRes?.message || "Unauthorized access",
-          status: STATUS_CODES.UNAUTHORIZED,
-        };
+      // Show global error toast if enabled
+      if (showGlobalError) {
+        handleGlobalError(response.status, errorMessage);
       }
 
-      // Handle forbidden access (403)
-      if (response.status === STATUS_CODES.FORBIDDEN) {
-        console.error("Forbidden access");
-        // handle forbidden access logic here
-
-        return {
-          response: null,
-          error: jsonRes?.message || "Access forbidden",
-          status: STATUS_CODES.FORBIDDEN,
-        };
-      }
-
-      // Handle other error responses
       return {
         response: null,
-        error:
-          jsonRes?.message || `Request failed with status ${response.status}`,
-        status: response.status,
+        error: {
+          message: errorMessage,
+          code: response.status,
+        },
       };
     }
 
     // Return successful response
     return {
-      response: jsonRes,
+      response: jsonResponse,
       error: null,
-      status: response.status,
     };
   } catch (error) {
     console.error("API Request Failed:", error);
 
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+
+    // Show global error toast for network errors if enabled
+    if (showGlobalError) {
+      toast.error("Network error. Please check your connection.");
+    }
+
     return {
       response: null,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
-      status: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      error: {
+        message: errorMessage,
+        code: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      },
     };
   }
 }
 
 // Utility functions for different HTTP methods
-
 export const getApi = <T>(
   endpoint: string,
   options?: Omit<ApiCallProps, "method" | "endpoint">,

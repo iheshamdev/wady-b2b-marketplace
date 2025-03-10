@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/store/cart";
 
 import { cn } from "@/lib/utils";
 
@@ -41,7 +42,10 @@ const navItems = [
 ];
 export default function NavMenu() {
   const pathname = usePathname();
-  const { totalItems } = useCartStore();
+  const { totalItems, fetchCart } = useCartStore();
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   return (
     <nav className="flex items-center justify-center gap-3">

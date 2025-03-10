@@ -3,163 +3,185 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { otpSchema, phoneSchema } from "@/schemas/auth";
-import useUserStore from "@/store/user-store";
+import { OTPSchema, phoneNumberSchema } from "@/schemas/auth";
+import useAuthStore from "@/store/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import OtpInput from "react-otp-input";
 
-import { generateOTP, verifyOTP } from "@/lib/api/auth";
-import { postApi } from "@/lib/http";
-import { Button, Input, Label } from "@/components/ui";
+import { formatPhoneNumber } from "@/lib/utils";
+import { Button, Input } from "@/components/ui";
 
 import { H2, P } from "../shared/typography";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import PhoneInput from "../ui/phone-input";
 
-type VerifyOTPResponse = {
-  message: string;
-  success?: boolean;
-  token?: string;
-  user?: any;
-};
+interface GenerateOTPProps {
+  onNext: () => void;
+}
 
-export const LoginForm = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const router = useRouter();
-  const { isLoading, error, setIsLoading, setError, setToken, setUser } =
-    useUserStore();
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(phoneNumber ? otpSchema : phoneSchema),
+export const GenerateOTPForm = ({ onNext }: GenerateOTPProps) => {
+  const { isLoading, generateOTP } = useAuthStore();
+
+  const form = useForm({
+    resolver: zodResolver(phoneNumberSchema),
+    defaultValues: { phoneNumber: localStorage.getItem("phoneNumber") || "" },
   });
 
-  const [otp, setOtp] = useState("");
-
   const onSubmit = async (data: any) => {
-    setIsLoading(true);
-    setError(null);
+    const formattedPhoneNumber = "+974" + data.phoneNumber;
+    await generateOTP(formattedPhoneNumber);
+    onNext();
+    localStorage.setItem("phoneNumber", data.phoneNumber);
+  };
 
-    try {
-      if (!phoneNumber) {
-        // Step 1: Generate OTP
-        const phone = "+974" + data.phoneNumber;
-        const { response, error } = await postApi<{ message: string }>(
-          "auth/generate-otp",
-          {
-            phoneNumber: phone,
-          },
-        );
-        console.log("HIIII", phone, response, error);
-        setPhoneNumber(phone);
-      } else {
-        // Step 2: Verify OTP
-        const { response, error } = await postApi<VerifyOTPResponse>(
-          "auth/verify-otp",
-          {
-            phoneNumber,
-            otp,
-          },
-        );
-        console.log("HIIII verify", response, error);
-        if (response?.token) {
-          setUser(response.user);
-          setToken(response.token);
-          router.push("/");
-        }
-      }
-    } catch (err: any) {
-      setError(err.message || "An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="w-[420px] max-w-full"
+      >
+        <Image
+          src="/images/logo.svg"
+          alt="Logo"
+          width={37}
+          height={37}
+          className="mb-5"
+          priority
+        />
+        <H2 className="mb-3">Login</H2>
+        <P>Add your phone number, we will send you a verification code.</P>
+        <div className="my-6 h-[1px] w-full bg-neutral-200"></div>
+
+        <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <PhoneInput placeholder="Enter your phone number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
+          {isLoading ? "Sending OTP ..." : "Send OTP"}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+interface VerifyOTPProps {
+  onBack: () => void;
+}
+
+export const VerifyOTPForm = ({ onBack }: VerifyOTPProps) => {
+  const [otp, setOtp] = useState("");
+  const { isLoading, generateOTP, verifyOTP } = useAuthStore();
+  const router = useRouter();
+  const phoneNumber = localStorage.getItem("phoneNumber") || "";
+
+  const form = useForm({
+    resolver: zodResolver(OTPSchema),
+    defaultValues: { otp: "" },
+  });
+
+  const onSubmit = async () => {
+    const verified = await verifyOTP(formatPhoneNumber(phoneNumber), otp);
+    if (verified) {
+      router.push("/");
+      setTimeout(() => {
+        localStorage.removeItem("phoneNumber");
+      }, 2000);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-[420px] max-w-full">
-      {/* {console.log(errors)} */}
-      {!phoneNumber ? (
-        <>
-          <Image
-            src="/images/logo.svg"
-            alt="Wady's logo"
-            width={37}
-            height={37}
-            className="mb-5"
-            priority
-          />
-          <H2 className="mb-3">Login</H2>
-          <P>Add your phone number, we will send you a verification code.</P>
-          <div className="my-6 h-[1px] w-full bg-neutral-200"></div>
-          <Label className="mb-2 block">Phone Number</Label>
-          <div className="flex">
-            <div className="flex items-center rounded-l-md border bg-muted px-3">
-              <span className="text-sm text-muted-foreground">+974</span>
-            </div>
-            <Input
-              id="phone"
-              type="tel"
-              {...register("phoneNumber")}
-              placeholder="Enter your phone number"
-              className="ml-[-1px] rounded-l-none"
-              disabled={isLoading}
-            />
-          </div>
-          {errors.phoneNumber && (
-            <p className="mt-3 text-red-500">
-              {errors.phoneNumber?.message?.toString()}
-            </p>
-          )}
-        </>
-      ) : (
-        <div className="text-center">
-          <H2 className="mb-3">Enter OTP code</H2>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="w-[420px] max-w-full text-center"
+      >
+        <H2 className="mb-3">Enter OTP Code</H2>
+        <div className="space-y-1">
           <P>Code has been sent to {phoneNumber}</P>
-          <Controller
-            name="otp"
-            control={control}
-            render={({ field }) => (
-              <OtpInput
-                value={otp}
-                onChange={(value) => {
-                  setOtp(value);
-                  field.onChange(value); // Update form state
-                }}
-                containerStyle={{
-                  gap: "12px",
-                  justifyContent: "center",
-                  marginTop: "12px",
-                }}
-                inputStyle={{ width: "40px" }}
-                renderInput={(props) => <Input {...props} />}
-              />
-            )}
-          />
-          {errors.otp && (
-            <p className="mt-2 text-sm text-red-500">
-              {errors.otp.message?.toString()}
-            </p>
-          )}
+          <Button type="button" variant="link" onClick={() => onBack()}>
+            Edit Phone Number
+          </Button>
         </div>
-      )}
-      {error && <p className="text-red-500">{error}</p>}
-      <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
-        {isLoading ? "Loading..." : phoneNumber ? "Verify OTP" : "Send OTP"}
-      </Button>
-      {phoneNumber && (
+
+        <FormField
+          control={form.control}
+          name="otp"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <OtpInput
+                  containerStyle={{
+                    gap: "12px",
+                    justifyContent: "center",
+                    marginTop: "12px",
+                  }}
+                  inputStyle={{ width: "44px" }}
+                  renderInput={(props) => <Input {...props} />}
+                  {...field}
+                  onChange={(value: string) => {
+                    setOtp(value);
+                    field.onChange(value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
+          {isLoading ? "Verifying..." : "Verify OTP"}
+        </Button>
+
         <div className="mt-5 flex items-center justify-center">
           <P>Didn&apos;t get the code?</P>
           <Button
             type="button"
             variant="link"
-            onClick={async () => await generateOTP(phoneNumber)}
+            onClick={async () =>
+              await generateOTP(formatPhoneNumber(phoneNumber))
+            }
           >
             Resend OTP
           </Button>
         </div>
+      </form>
+    </Form>
+  );
+};
+
+export const LoginForm = () => {
+  const [step, setStep] = useState<"generateOTP" | "verifyOTP">("generateOTP");
+
+  return (
+    <div className="flex items-center justify-center">
+      {step === "generateOTP" ? (
+        <GenerateOTPForm
+          onNext={() => {
+            setStep("verifyOTP");
+          }}
+        />
+      ) : (
+        <VerifyOTPForm onBack={() => setStep("generateOTP")} />
       )}
-    </form>
+    </div>
   );
 };

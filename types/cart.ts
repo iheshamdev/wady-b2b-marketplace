@@ -1,30 +1,45 @@
-import { z } from "zod";
+import { Brand, Category, Packaging, Size, Variant } from "./product";
 
-export const CartItemSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  price: z.number().positive(),
-  quantity: z.number().int().positive(),
-  image: z.string(),
-  type: z.string().optional(),
-  size: z.string().optional(),
-  package: z.string().optional(),
-  totalPrice: z.number().positive(),
-  discount: z
-    .object({
-      percentage: z.number(),
-      amount: z.number().positive(),
-    })
-    .optional(),
-});
+export interface CartPackage {
+  id: number;
+  nameEn: string;
+  nameAr: string;
+  product: {
+    id: number;
+    nameEn: string;
+    nameAr: string;
+    image: string;
+    category: Category;
+    brand: Brand;
+  };
+  variant: Variant;
+  size: {
+    id: number;
+    unitEn: string;
+    unitAr: string;
+    quantity: string;
+  };
+  packagingType: Packaging;
+  pricing: {
+    totalPrice: number;
+    pricePerUnit: number;
+  };
+}
 
-export type CartItem = z.infer<typeof CartItemSchema>;
+export interface CartItem {
+  cartItemId: number;
+  package: CartPackage;
+  quantity: number;
+  totalPrice: number;
+}
 
-export interface CartState {
+export interface CartResponse {
+  cartId: number;
   items: CartItem[];
-  addItem: (item: CartItem) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
-  readonly subtotal: number;
+  totalPrice: number;
+}
+
+export interface AddToCartRequest {
+  packageId: number;
+  quantity: number;
 }

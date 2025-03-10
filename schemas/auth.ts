@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const phoneSchema = z.object({
+export const phoneNumberSchema = z.object({
   phoneNumber: z
     .string()
     .min(1, "Phone number is required")
@@ -10,7 +10,7 @@ export const phoneSchema = z.object({
     ),
 });
 
-export const otpSchema = z.object({
+export const OTPSchema = z.object({
   otp: z
     .string()
     .length(4, "OTP must be exactly 4 digits")
@@ -18,5 +18,5 @@ export const otpSchema = z.object({
 });
 
 // Infer types from schemas
-export type PhoneFormValues = z.infer<typeof phoneSchema>;
-export type OtpFormValues = z.infer<typeof otpSchema>;
+export type PhoneFormValues = z.infer<typeof phoneNumberSchema>;
+export type OtpFormValues = z.infer<typeof OTPSchema>;

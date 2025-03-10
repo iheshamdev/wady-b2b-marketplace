@@ -27,6 +27,7 @@ export interface Packaging {
   nameEn: string;
   nameAr: string;
 }
+
 export interface Package {
   id: number;
   nameEn: string;

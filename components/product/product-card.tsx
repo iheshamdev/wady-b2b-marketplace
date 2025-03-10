@@ -17,15 +17,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="relative rounded bg-white p-3 shadow-[0px_1px_5px_0px_rgba(0,0,0,0.12)]">
-      {/* Product Image */}
       <div className="relative mb-3 aspect-video w-full rounded-sm bg-gray-50 p-4">
-        {/* {!inStock && (
-          <div className="absolute start-3 top-3 z-10 rounded-sm bg-red-50 px-2 py-0.5">
-            <span className="text-xs text-red-500">Out of stock</span>
-          </div>
-        )} */}
-
-        {/* Favorite Button */}
         <Button
           size="icon"
           variant="ghost"
@@ -51,7 +43,6 @@ export function ProductCard({ product }: { product: Product }) {
         />
       </div>
 
-      {/* Product Info */}
       <div className="">
         <Link
           href={`/products/${id}`}
@@ -67,12 +58,7 @@ export function ProductCard({ product }: { product: Product }) {
           Available in more options
         </Small>
 
-        <Button
-          className="mt-5 w-full"
-          // disabled={!inStock}
-        >
-          Order Now
-        </Button>
+        <Button className="mt-5 w-full">Order Now</Button>
       </div>
     </div>
   );

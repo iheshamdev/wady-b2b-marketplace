@@ -17,7 +17,7 @@ type AuthStore = {
   error: string | null;
   setToken: (token: Token) => void;
   setUser: (user: User | null) => void;
-  setLoading: (isLoading: boolean) => void;
+  // setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   logout: () => void;
 };
@@ -32,7 +32,7 @@ const useUserStore = create<AuthStore>()(
         ? JSON.parse(Cookies.get("user") || "null")
         : null,
 
-      setLoading: (isLoading) => set({ isLoading }),
+      // setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
       setToken: (token) => {
         if (token) {

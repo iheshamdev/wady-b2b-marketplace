@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { useCartStore } from "@/store/cart-store";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
 
 import type { Package, Product } from "@/types/product";
 import { postApi } from "@/lib/http";
+import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 import { H3, P } from "../shared/typography";
@@ -17,53 +18,42 @@ import ProductVaraiants from "./product-variants";
 
 export function ProductDetails({ product }: { product: Product }) {
   const { id, nameEn, image, variants, sizes, packagings, packages } = product;
+  const router = useRouter();
   const [title, setTitle] = useState(nameEn);
   const [price, setPrice] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { addCartItem, addCartItemLoading } = useCartStore();
 
   const searchParams = useSearchParams();
-  // const addItem = useCartStore((state) => state.addItem);
-
-  // const fetchCart = useCartStore((state) => state.fetchCart);
+  const packageId = searchParams.get("package");
 
   // Initialize selected package from URL param if available
   useEffect(() => {
-    const packageId = searchParams.get("package");
-    if (packageId && packages) {
-      const pkg = packages.find((p) => p.id === Number(packageId));
-      if (pkg) {
-        handlePackageChange(pkg);
+    if (packages && packages.length > 0) {
+      if (!packageId) {
+        const params = new URLSearchParams(window.location.search);
+        params.set("package", packages[0].id.toString());
+        router.replace(`?${params.toString()}`, { scroll: false });
+      } else {
+        const pkg = packages.find((p) => p.id === Number(packageId));
+        if (pkg) {
+          onPackageChange(pkg);
+        }
       }
     }
-  }, [searchParams, packages]);
+  }, [packageId, packages]);
 
-  const handlePackageChange = (pkg: Package) => {
+  const onPackageChange = (pkg: Package) => {
     setSelectedPackage(pkg);
     setTitle(pkg.nameEn);
-    setPrice(Number.parseInt(pkg.pricePerUnit));
+    setPrice(Number(pkg.pricePerUnit));
   };
 
   const addToCartHandler = async () => {
-    if (!selectedPackage) {
-      toast.error("Please select a package option");
-      return;
+    if (packageId) {
+      addCartItem({ packageId: Number(packageId), quantity });
     }
-
-    setIsLoading(true);
-
-    const { response, error } = await postApi("cart/add", {
-      packageId: selectedPackage.id,
-      quantity,
-    });
-
-    if (response) {
-      toast.success("Added to cart successfully");
-    } else {
-      toast.error("Something went wrong, please try again");
-    }
-    setIsLoading(false);
   };
 
   return (
@@ -89,7 +79,7 @@ export function ProductDetails({ product }: { product: Product }) {
           </span>
         </div>
         <div className="my-3 text-2xl font-bold">
-          {price > 0 ? `${price} QAR` : "Select options"}
+          {price > 0 ? `${formatPrice(price)} QAR` : "Select options"}
         </div>
         <P className="border-b border-neutral-200 pb-3 text-sm">
           Due to our superior machinery and manufacturing process, we have
@@ -101,7 +91,7 @@ export function ProductDetails({ product }: { product: Product }) {
           sizes={sizes}
           packagings={packagings}
           packages={packages ?? []}
-          onPackageChange={handlePackageChange}
+          onPackageChange={onPackageChange}
         />
 
         <div className="mt-4 space-y-4">
@@ -116,9 +106,9 @@ export function ProductDetails({ product }: { product: Product }) {
             <Button
               className="h-[46px] flex-1"
               onClick={addToCartHandler}
-              disabled={isLoading || !selectedPackage}
+              disabled={addCartItemLoading || !selectedPackage}
             >
-              {isLoading ? (
+              {addCartItemLoading ? (
                 <span className="flex items-center gap-2">Adding...</span>
               ) : (
                 "Add to cart"

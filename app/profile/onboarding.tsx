@@ -2,8 +2,10 @@
 
 import type React from "react";
 import { useState } from "react";
+import useAuthStore from "@/store/auth";
 import useUserStore from "@/store/user-store";
 
+import { User } from "@/types/auth";
 import { postApi } from "@/lib/http";
 import { cn } from "@/lib/utils";
 import CompleteProfileCard from "@/components/ui/complete-profile-card";
@@ -19,16 +21,8 @@ type Step = {
   isCompleted: boolean;
 };
 
-interface User {
-  id: string;
-  phoneNumber: string;
-  isVerified: boolean;
-  name?: string;
-  businessProfile?: any;
-}
-
 export default function OnboardingPage() {
-  const { setUser } = useUserStore();
+  const { setUser } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState<Step[]>([
     {

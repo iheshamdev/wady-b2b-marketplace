@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCartStore } from "@/store/cart-store";
+import { useCartStore } from "@/store/cart";
 
-import { formatCurrency } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { QuantityCounter } from "@/components/ui/quantity-counter";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function CartPage() {
-  const { items, removeItem, subtotal } = useCartStore();
+  const {
+    items,
+    totalPrice,
+    fetchCart,
+    removeCartItem,
+    removeCartItemLoading,
+  } = useCartStore();
   const [specialInstructions, setSpecialInstructions] = useState("");
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -35,55 +45,50 @@ export default function CartPage() {
           </div>
 
           <div className="divide-y">
-            {items.map((item) => (
+            {items.map((item, index) => (
               <div
-                key={item.id}
+                key={index}
                 className="grid grid-cols-12 items-center gap-4 py-6"
               >
+                {/* {console.log(item)} */}
                 <div className="col-span-6 flex gap-4">
                   <div className="size-20 shrink-0 overflow-hidden rounded-md bg-muted">
                     <Image
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.name}
+                      src={item?.package?.product?.image || "/placeholder.svg"}
+                      alt={item?.package?.product?.nameEn}
                       width={80}
                       height={80}
                       className="size-full object-cover"
                     />
                   </div>
                   <div>
-                    <h3 className="font-medium">{item.name}</h3>
+                    <h3 className="font-medium">
+                      {item?.package?.product?.nameEn}
+                    </h3>
                     <div className="mt-1 space-y-1 text-sm text-muted-foreground">
-                      <p>Type: {item.type}</p>
-                      <p>Size: {item.size}</p>
-                      <p>Package: {item.package}</p>
+                      <p>Type: {item.package.packagingType.nameEn}</p>
+                      <p>
+                        {`Size: ${item.package.size.quantity} ${item.package.size.unitEn}`}
+                      </p>
+                      <p>Package: {item.package.variant.nameEn}</p>
                     </div>
                     <button
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeCartItem(item.cartItemId)}
                       className="mt-2 text-sm text-primary"
+                      disabled={removeCartItemLoading}
                     >
                       Remove
                     </button>
                   </div>
                 </div>
                 <div className="col-span-2 text-center">
-                  {formatCurrency(item.price)}
-                  {item.discount && (
-                    <div className="mt-1 text-sm text-red-500">
-                      {item.discount.percentage}% (
-                      {formatCurrency(item.discount.amount)})
-                    </div>
-                  )}
+                  {formatPrice(Number(item?.package?.pricing?.pricePerUnit))}
                 </div>
                 <div className="col-span-2 flex items-center justify-center">
-                  <QuantityCounter initialValue={2} />
+                  <QuantityCounter initialValue={item.quantity} />
                 </div>
                 <div className="col-span-2 text-right">
-                  {formatCurrency(item.totalPrice)}
-                  {item.discount && (
-                    <div className="text-sm text-muted-foreground">
-                      {formatCurrency(item.discount.amount * item.quantity)}
-                    </div>
-                  )}
+                  {formatPrice(Number(item.totalPrice))}
                 </div>
               </div>
             ))}
@@ -101,8 +106,8 @@ export default function CartPage() {
             </div>
             <div className="md:ml-auto md:w-80">
               <div className="flex justify-between py-2 font-medium">
-                <span>Subtotal</span>
-                <span>{formatCurrency(subtotal)}</span>
+                <span>Total price</span>
+                <span>{formatPrice(totalPrice)}</span>
               </div>
               <p className="mb-4 text-sm text-muted-foreground">
                 Taxes and Shipping calculated at checkout
